@@ -249,6 +249,30 @@ const animateOrbits = () => {
   });
 };
 
+// function rotateOrbit(){
+//   mercuryGroup.position.y += 0.01;
+//   venusGroup.position.y += 0.008;
+//   earthGroup.position.y += 0.006;
+//   marsGroup.position.y += 0.004;
+//   jupiterGroup.position.y += 0.003;
+//   saturnGroup.position.y += 0.002;
+//   uranusGroup.position.y += 0.001;
+//   neptuneGroup.position.y += 0.001;
+// };
+
+// function rotatePlanet(){
+//   sun.rotation.y += 0.0009;
+//   mercuryGroup.position.y += 0.02;
+//   venusGroup.position.y += 0.01;
+//   earthGroup.position.y += 0.01;
+//   marsGroup.position.y += 0.008;
+//   jupiterGroup.position.y += 0.004;
+//   saturnGroup.position.y += 0.005;
+//   uranusGroup.position.y += 0.006;
+//   neptuneGroup.position.y += 0.007;
+// };
+
+
 
 const createSkybox = (scene, texturePaths, size = 4260) => {
   const materials = texturePaths.map(path => 

@@ -140,7 +140,6 @@ const createObjects = async () => {
     neptune.position.set(500, 0, 0);
 
     // Grouping
-
     mercuryGroup.add(mercury);
     venusGroup.add(venus);
     earthGroup.add(earth,satellite);
@@ -465,23 +464,33 @@ let cameraFollowShip = () =>{
 let planetNames = {};
 
 const createTextGeometry = (name, position) => {
-    const loader = new FontLoader();
-    loader.load('../three.js-master145/examples/fonts/helvetiker_regular.typeface.json', (font) => {
-        const textGeometry = new TextGeometry(name, {
-            font: font,
-            size: 10,
-            height: 1
-        });
-        const material = new THREE.MeshBasicMaterial({ color: 0xFFFFFF });
-        const textMesh = new THREE.Mesh(textGeometry, material);
+  const loader = new FontLoader();
+  loader.load('./three.js-master145/examples/fonts/helvetiker_regular.typeface.json', (font) => {
+      const textGeometry = new TextGeometry(name, {
+          font: font,
+          size: 200,
+          depth: 50
+      });
+      const material = new THREE.MeshBasicMaterial({ color: 0xFFFFFF });
+      const textMesh = new THREE.Mesh(textGeometry, material);
 
-        // Positioning the text near the planet
-        textMesh.position.set(position.x, position.y + 10, position.z);
-        scene.add(textMesh);
+      // Debugging: log the position and check if text is added
+      console.log("Text position:", position);
 
-        planetNames[name] = textMesh;
-    });
+      // Move the text up to make it visible above the planet
+      textMesh.position.set(position.x, position.y + 50, position.z);
+
+      // Scale the text to make it larger and more visible
+      textMesh.scale.set(500, 500, 500);
+
+      scene.add(textMesh);
+
+      console.log("Text mesh added:", textMesh);
+
+      planetNames[name] = textMesh;
+  });
 };
+
 
 window.onmousemove = (event) => {
     const mouse = new THREE.Vector2();

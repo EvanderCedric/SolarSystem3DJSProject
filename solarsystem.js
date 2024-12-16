@@ -207,7 +207,7 @@ const createObjects = async () => {
         'assets/skybox/top.png',
         'assets/skybox/bottom.png'
     ];
-    createSkybox(scene, skyboxTextures);
+    //createSkybox(scene, skyboxTextures);
 
     // Spaceship
     spaceship = await loadSpaceship();
@@ -230,7 +230,7 @@ const animateOrbits = () => {
   const delta = animationClock.getDelta();
   let deltaspeed = Math.PI/180;
 
- // Orbital Speeds (slower)
+ // Orbital Speeds 
 mercuryGroup.rotation.y += deltaspeed * (1 / 0.24) * 0.03;
 venusGroup.rotation.y += deltaspeed * (1 / 0.62) * 0.03;
 earthGroup.rotation.y += deltaspeed * (1 / 1.00) * 0.03;
@@ -240,17 +240,19 @@ saturnGroup.rotation.y += deltaspeed * (1 / 29.46) * 0.03;
 uranusGroup.rotation.y += deltaspeed * (1 / 84.02) * 0.03;
 neptuneGroup.rotation.y += deltaspeed * (1 / 164.79) * 0.03;
 
-// Rotation Speeds (slower)
-
+// Rotation Speeds
 if (sunGroup.children[0]) sunGroup.children[0].rotation.y += deltaspeed * (24 / 588);
 if (mercuryGroup.children[0]) mercuryGroup.children[0].rotation.y += deltaspeed * (24 / 1407.6) * 0.5;
 if (venusGroup.children[0]) venusGroup.children[0].rotation.y += deltaspeed * -(24 / 5832.5) * 0.5;
 if (earthGroup.children[0]) earthGroup.children[0].rotation.y += deltaspeed * (24 / 24) * 0.5;
+if (earthGroup.children[1]) earthGroup.children[1].rotation.z += deltaspeed * (24 / 24) * 0.5;
 if (marsGroup.children[0]) marsGroup.children[0].rotation.y += deltaspeed * (24 / 24.6) * 0.5;
 if (jupiterGroup.children[0]) jupiterGroup.children[0].rotation.y += deltaspeed * (24 / 9.9) * 0.5;
 if (saturnGroup.children[0]) saturnGroup.children[0].rotation.y += deltaspeed * (24 / 10.7) * 0.5;
 if (uranusGroup.children[0]) uranusGroup.children[0].rotation.y += deltaspeed * -(24 / 17.2) * 0.5;
 if (neptuneGroup.children[0]) neptuneGroup.children[0].rotation.y += deltaspeed * (24 / 16.1) * 0.5;
+
+
 
 };
 

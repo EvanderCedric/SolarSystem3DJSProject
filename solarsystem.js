@@ -18,8 +18,8 @@ let animationClock = new THREE.Clock();
     requestAnimationFrame(render);
     moveSpaceship();
     cameraFollowShip();
-    animationrunner();
-    //animateOrbits();
+    raycastAnim();
+    animateOrbits();
 
     renderer.render(scene, currentCamera);
     controls.update();
@@ -27,8 +27,8 @@ let animationClock = new THREE.Clock();
   
   window.onload = () => {
     init();
-    render();
     createObjects();
+    render();
   };
   
   window.onresize = () => {
@@ -81,6 +81,7 @@ let init = () => {
   
 //Grouping
   let solarSystem = new THREE.Object3D();
+  let sunGroup = new THREE.Object3D();
   let mercuryGroup = new THREE.Object3D();
   let venusGroup = new THREE.Object3D();
   let earthGroup = new THREE.Object3D();
@@ -104,42 +105,39 @@ const createObjects = async () => {
 
     // Planets
     let mercury = cBall(3.2, 32, 32, "./assets/textures/mercury.jpg");
-    mercury.position.set(150, 0, 0);
-
     let venus = cBall(4.8, 32, 32, "./assets/textures/venus.jpg");
-    venus.position.set(200, 0, 0);
-
     let earth = cBall(4.8, 32, 32, "./assets/textures/earth.jpg");
-    earth.position.set(250, 0, 0);
-
     let satellite = cSatelite(1, 0.5, 0.4, 8);
+    let mars = cBall(4, 32, 32, "./assets/textures/mars.jpg");
+    let jupiter = cBall(13, 32, 32, "./assets/textures/jupiter.jpg");
+    let saturn = cBall(10, 32, 32, "./assets/textures/saturn.jpg");
+    let saturnring = cRing(16, 32, 64, "./assets/textures/saturn_ring.png");
+    let uranus = cBall(8, 32, 32, "./assets/textures/uranus.jpg");
+    let uranusring = cRing(16, 20, 64, "./assets/textures/uranus_ring.png");
+    let neptune = cBall(6, 32, 32, "./assets/textures/neptune.jpg");
+
+
+    //planet position and rotation adjustment
+    mercury.position.set(150, 0, 0);
+    venus.position.set(200, 0, 0);
+    earth.position.set(250, 0, 0);
     satellite.position.copy(earth.position.clone().add(new THREE.Vector3(8, 0, 0)));
     satellite.rotation.x = Math.PI / 180 * -90;
     satellite.rotation.z = Math.PI / 180 * 90;
-
-    let mars = cBall(4, 32, 32, "./assets/textures/mars.jpg");
     mars.position.set(300, 0, 0);
-
-    let jupiter = cBall(13, 32, 32, "./assets/textures/jupiter.jpg");
-    jupiter.position.set(350, 0, 0);
-
-    let saturn = cBall(10, 32, 32, "./assets/textures/saturn.jpg");
-    saturn.position.set(400, 0, 0);
-    let saturnring = cRing(16, 32, 64, "./assets/textures/saturn_ring.png");
+    jupiter.position.set(450, 0, 0);
+    saturn.position.set(600, 0, 0);
     saturnring.position.copy(saturn.position.clone());
     saturnring.rotation.x = Math.PI / 180 * -90;
     saturnring.rotation.y = Math.PI / 180 * -10;
-
-    let uranus = cBall(8, 32, 32, "./assets/textures/uranus.jpg");
-    uranus.position.set(450, 0, 0);
-    let uranusring = cRing(16, 20, 64, "./assets/textures/uranus_ring.png");
+    uranus.position.set(750, 0, 0);
     uranusring.position.copy(uranus.position.clone());
     uranusring.rotation.y = Math.PI / 180 * 5;
+    neptune.position.set(900, 0, 0);
 
-    let neptune = cBall(6, 32, 32, "./assets/textures/neptune.jpg");
-    neptune.position.set(500, 0, 0);
 
     // Grouping
+    sunGroup.add(sun,sunlight);
     mercuryGroup.add(mercury);
     venusGroup.add(venus);
     earthGroup.add(earth,satellite);
@@ -149,8 +147,18 @@ const createObjects = async () => {
     uranusGroup.add(uranus, uranusring);
     neptuneGroup.add(neptune);
 
-    solarSystem.add(sun,sunlight);
+    sunGroup.position.set(0,0,0);
+    mercuryGroup.position.set(0,0,0);
+    venusGroup.position.set(0,0,0);
+    earthGroup.position.set(0,0,0);
+    marsGroup.position.set(0,0,0);
+    jupiterGroup.position.set(0,0,0);
+    saturnGroup.position.set(0,0,0);
+    uranusGroup.position.set(0,0,0);
+    neptuneGroup.position.set(0,0,0);
+
     solarSystem.add(
+      sunGroup,
       mercuryGroup,
       venusGroup,
       earthGroup,
@@ -163,26 +171,32 @@ const createObjects = async () => {
      scene.add(solarSystem);
 
     // Adding objects for hover effects
-    let refObj = [
-      solarSystem, 
-      mercuryGroup,   
-      venusGroup,     
-      earthGroup,     
-      marsGroup,      
-      jupiterGroup,  
-      saturnGroup,    
-      uranusGroup,    
-      neptuneGroup    
-  ];
+    if(currentCamera != SpaceshipCamera){
+      let refObj = [
+        solarSystem, 
+        sunGroup,
+        mercuryGroup,   
+        venusGroup,     
+        earthGroup,     
+        marsGroup,      
+        jupiterGroup,  
+        saturnGroup,    
+        uranusGroup,    
+        neptuneGroup    
+    ];
+      refObj.forEach(group => {
+        group.children.forEach(obj => {
+            if (obj.material) { 
+                obj.defaultColor = obj.material.color.clone();
+            }
+            hoverEffects.set(obj, { rotating: false, fastRotation: false, scale: 1 });
+            
+        });
+    });
   
-  refObj.forEach(group => {
-      group.children.forEach(obj => {
-          if (obj.material) { 
-              obj.defaultColor = obj.material.color.clone();
-          }
-          hoverEffects.set(obj, { rotating: false, fastRotation: false, scale: 1 });
-      });
-  });
+    }
+
+  
 
     // Skybox
     const skyboxTextures = [
@@ -193,7 +207,7 @@ const createObjects = async () => {
         'assets/skybox/top.png',
         'assets/skybox/bottom.png'
     ];
-    //createSkybox(scene, skyboxTextures);
+    createSkybox(scene, skyboxTextures);
 
     // Spaceship
     spaceship = await loadSpaceship();
@@ -207,71 +221,38 @@ const createObjects = async () => {
     scene.add(spaceshiplight);
 
     //SpaceshipGroup
-    spaceshipGroup.add(spaceship,spaceshiplight);
+    // spaceshipGroup.add(spaceship,spaceshiplight);
+    // spaceshipGroup.position.set(100,0,0);
 };
 
 // Animation
 const animateOrbits = () => {
   const delta = animationClock.getDelta();
+  let deltaspeed = Math.PI/180;
 
-  // Adjust orbital positions (each planet rotates around the Sun)
-  const orbitSpeed = {
-      mercuryGroup: 0.02,
-      venusGroup: 0.01,
-      earthGroup: 0.008,
-      marsGroup: 0.007,
-      jupiterGroup: 0.005,
-      saturnGroup: 0.004,
-      uranusGroup: 0.003,
-      neptuneGroup: 0.002
-  };
+ // Orbital Speeds (slower)
+mercuryGroup.rotation.y += deltaspeed * (1 / 0.24) * 0.03;
+venusGroup.rotation.y += deltaspeed * (1 / 0.62) * 0.03;
+earthGroup.rotation.y += deltaspeed * (1 / 1.00) * 0.03;
+marsGroup.rotation.y += deltaspeed * (1 / 1.88) * 0.03;
+jupiterGroup.rotation.y += deltaspeed * (1 / 11.86) * 0.03;
+saturnGroup.rotation.y += deltaspeed * (1 / 29.46) * 0.03;
+uranusGroup.rotation.y += deltaspeed * (1 / 84.02) * 0.03;
+neptuneGroup.rotation.y += deltaspeed * (1 / 164.79) * 0.03;
 
-  // Adjust self-rotation (each planet rotates on its axis)
-  const selfRotationSpeed = {
-      mercuryGroup: 0.1,
-      venusGroup: 0.07,
-      earthGroup: 0.05,
-      marsGroup: 0.05,
-      jupiterGroup: 0.02,
-      saturnGroup: 0.015,
-      uranusGroup: 0.02,
-      neptuneGroup: 0.01
-  };
+// Rotation Speeds (slower)
 
-  Object.keys(orbitSpeed).forEach(groupName => {
-      let group = window[groupName];
-      group.rotation.y += orbitSpeed[groupName];  // Orbit around the Sun
+if (sunGroup.children[0]) sunGroup.children[0].rotation.y += deltaspeed * (24 / 588);
+if (mercuryGroup.children[0]) mercuryGroup.children[0].rotation.y += deltaspeed * (24 / 1407.6) * 0.5;
+if (venusGroup.children[0]) venusGroup.children[0].rotation.y += deltaspeed * -(24 / 5832.5) * 0.5;
+if (earthGroup.children[0]) earthGroup.children[0].rotation.y += deltaspeed * (24 / 24) * 0.5;
+if (marsGroup.children[0]) marsGroup.children[0].rotation.y += deltaspeed * (24 / 24.6) * 0.5;
+if (jupiterGroup.children[0]) jupiterGroup.children[0].rotation.y += deltaspeed * (24 / 9.9) * 0.5;
+if (saturnGroup.children[0]) saturnGroup.children[0].rotation.y += deltaspeed * (24 / 10.7) * 0.5;
+if (uranusGroup.children[0]) uranusGroup.children[0].rotation.y += deltaspeed * -(24 / 17.2) * 0.5;
+if (neptuneGroup.children[0]) neptuneGroup.children[0].rotation.y += deltaspeed * (24 / 16.1) * 0.5;
 
-      // Self rotation
-      group.children.forEach(child => {
-          child.rotation.y += selfRotationSpeed[groupName];
-      });
-  });
 };
-
-// function rotateOrbit(){
-//   mercuryGroup.position.y += 0.01;
-//   venusGroup.position.y += 0.008;
-//   earthGroup.position.y += 0.006;
-//   marsGroup.position.y += 0.004;
-//   jupiterGroup.position.y += 0.003;
-//   saturnGroup.position.y += 0.002;
-//   uranusGroup.position.y += 0.001;
-//   neptuneGroup.position.y += 0.001;
-// };
-
-// function rotatePlanet(){
-//   sun.rotation.y += 0.0009;
-//   mercuryGroup.position.y += 0.02;
-//   venusGroup.position.y += 0.01;
-//   earthGroup.position.y += 0.01;
-//   marsGroup.position.y += 0.008;
-//   jupiterGroup.position.y += 0.004;
-//   saturnGroup.position.y += 0.005;
-//   uranusGroup.position.y += 0.006;
-//   neptuneGroup.position.y += 0.007;
-// };
-
 
 
 const createSkybox = (scene, texturePaths, size = 4260) => {
@@ -403,12 +384,12 @@ let addHandling = () => {
 let 
   spaceshipVelocity = 0, 
   spaceshipMaxSpeed = 1, 
-  rotateSpeed = 0.01, 
+  rotateSpeed = 0.04, 
   isRotating = 0, 
   isMoving = 0,
   isHovering = 0,
   accel = 0.01, 
-  hoverSpeed = 0.05; // Speed for vertical movement
+  hoverSpeed = 0.05; 
 
 let keyDownEvent = (e) => {
     let keyCode = e.keyCode;
@@ -485,82 +466,93 @@ let cameraFollowShip = () =>{
     SpaceshipCamera.lookAt(spaceship.position);
   }
 }
-let planetNames = {};
 
-const createTextGeometry = (name, position) => {
-  const loader = new FontLoader();
-  loader.load('./three.js-master145/examples/fonts/helvetiker_regular.typeface.json', (font) => {
-      const textGeometry = new TextGeometry(name, {
-          font: font,
-          size: 200,
-          depth: 50
-      });
-      const material = new THREE.MeshBasicMaterial({ color: 0xFFFFFF });
-      const textMesh = new THREE.Mesh(textGeometry, material);
-
-      // Debugging: log the position and check if text is added
-      console.log("Text position:", position);
-
-      // Move the text up to make it visible above the planet
-      textMesh.position.set(position.x, position.y + 50, position.z);
-
-      // Scale the text to make it larger and more visible
-      textMesh.scale.set(500, 500, 500);
-
-      scene.add(textMesh);
-
-      console.log("Text mesh added:", textMesh);
-
-      planetNames[name] = textMesh;
-  });
+let planetNames = {
+  "Sun": null,
+  "Mercury": null,
+  "Venus": null,
+  "Earth": null,
+  "Mars": null,
+  "Jupiter": null,
+  "Saturn": null,
+  "Uranus": null,
+  "Neptune": null
 };
 
+const createTextGeometry = (name, position) => {
+const loader = new FontLoader();
+loader.load('./three.js-master145/examples/fonts/helvetiker_regular.typeface.json', (font) => {
+    const textGeometry = new TextGeometry(name, {
+        font: font,
+        size: 200,
+        depth: 50
+    });
+    const material = new THREE.MeshBasicMaterial({ color: 0xFFFFFF });
+    const textMesh = new THREE.Mesh(textGeometry, material);
+
+    console.log("Text position:", position);
+
+    textMesh.position.set(position.x, position.y + 50, position.z);
+    textMesh.scale.set(500, 500, 500);
+
+    scene.add(textMesh);
+
+    console.log("Text mesh added:", textMesh);
+
+    planetNames[name] = textMesh;
+});
+};
 
 window.onmousemove = (event) => {
-    const mouse = new THREE.Vector2();
-    const raycaster = new THREE.Raycaster();
-    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+  const mouse = new THREE.Vector2();
+  const raycaster = new THREE.Raycaster();
+  mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+  mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
-    raycaster.setFromCamera(mouse, camera);
+  raycaster.setFromCamera(mouse, camera);
 
-    const intersects = raycaster.intersectObjects(scene.children, true);
+  // Check if current camera is not the SpaceshipCamera
+  if (camera !== SpaceshipCamera) {
+      const intersects = raycaster.intersectObjects(scene.children, true);
 
-    if (intersects.length > 0) {
-        const hoveredObject = intersects[0].object;
+      if (intersects.length > 0) {
+          const hoveredObject = intersects[0].object;
 
-        if (hoveredObject !== lastIntersected) {
-            if (lastIntersected) {
-                resetHoverState(lastIntersected);
-                hideTextGeometry(lastIntersected);
-            }
-            if (hoverEffects.has(hoveredObject)) {
-                applyHoverEffects(hoveredObject);
-                lastIntersected = hoveredObject;
-                const planetName = hoveredObject.name;
-                if (!planetNames[planetName]) {
-                    createTextGeometry(planetName, hoveredObject.position);
-                }
-            } else {
-                lastIntersected = null;
-            }
-        }
-    } else {
-        if (lastIntersected) {
-            resetHoverState(lastIntersected);
-            hideTextGeometry(lastIntersected);
-            lastIntersected = null;
-        }
-    }
+          if (hoveredObject !== lastIntersected) {
+              if (lastIntersected) {
+                  resetHoverState(lastIntersected);
+                  hideTextGeometry(lastIntersected);
+              }
+              if (hoverEffects.has(hoveredObject)) {
+                  applyHoverEffects(hoveredObject);
+                  lastIntersected = hoveredObject;
+                  const planetName = hoveredObject.name;
+                  if (!planetNames[planetName]) {
+                      createTextGeometry(planetName, hoveredObject.position);
+                  }
+              } else {
+                  lastIntersected = null;
+              }
+          }
+      } else {
+          if (lastIntersected) {
+              resetHoverState(lastIntersected);
+              hideTextGeometry(lastIntersected);
+              lastIntersected = null;
+          }
+      }
+  }
 };
 
 const hideTextGeometry = (object) => {
-    const planetName = object.name;
-    if (planetNames[planetName]) {
-        scene.remove(planetNames[planetName]);
-        delete planetNames[planetName];
-    }
+const planetName = object.name;
+if (planetNames[planetName]) {
+    scene.remove(planetNames[planetName]);
+    delete planetNames[planetName];
+}
 };
+
+
 
 
 const colorList = [
@@ -585,24 +577,11 @@ const resetHoverState = (object) => {
   }
 };
 
-// Handle click interaction
-window.onclick = () => {
-  if (lastIntersected) {
-      const effect = hoverEffects.get(lastIntersected);
-      effect.rotating = true; 
-      effect.fastRotation = true;
-
-      setTimeout(() => {
-          effect.fastRotation = false;
-      }, 2000);
-  }
-};
-let animationrunner = () => {
+let raycastAnim = () => {
   const delta = animationClock.getDelta();
-
   hoverEffects.forEach((params, mesh) => {
     if (params.fastRotation) {
-      mesh.rotation.y += delta * Math.PI * 2;
+      mesh.rotation.y += delta * Math.PI/180 * 10;
     } else if (params.rotating) {
       mesh.rotation.y += delta * Math.PI;
     }

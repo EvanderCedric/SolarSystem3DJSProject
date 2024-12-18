@@ -20,6 +20,7 @@ let animationClock = new THREE.Clock();
     cameraFollowShip();
     raycastAnim();
     animateOrbits();
+    //lightFollowShip();
 
     renderer.render(scene, currentCamera);
     controls.update();
@@ -207,22 +208,28 @@ const createObjects = async () => {
         'assets/skybox/top.png',
         'assets/skybox/bottom.png'
     ];
-    //createSkybox(scene, skyboxTextures);
+    cSkybox(scene, skyboxTextures);
 
-    // Spaceship
-    spaceship = await loadSpaceship();
-    spaceship.position.set(100, 0, 0);
-    scene.add(spaceship);
+// Spaceship
+spaceship = await loadSpaceship();
+spaceship.position.set(0, 0, 0);
 
-    // Spaceship Headlights
-    let spaceshiplight = createSpotLight({ color: "#FFFFFF" }, 8, 8);
-    spaceshiplight.position.copy(spaceship.position.clone());
-    spaceshiplight.castShadow = true;
-    scene.add(spaceshiplight);
+// Spaceship Headlights
+let spaceshiplight = createSpotLight({ color: "#FFFFFF" }, 8, 3);
+spaceshiplight.position.copy(spaceship.position.clone().add(new THREE.Vector3(0, 2, 0))); // 3 units above the spaceship
+spaceshiplight.castShadow = true;
 
-    //SpaceshipGroup
-    // spaceshipGroup.add(spaceship,spaceshiplight);
-    // spaceshipGroup.position.set(100,0,0);
+// Spotlight Target
+const lightTarget = new THREE.Object3D();
+lightTarget.position.copy(spaceship.position); // Target the spaceship
+scene.add(lightTarget);
+spaceshiplight.target = lightTarget; // Assign the target to the spotlight
+
+// Spaceship Group
+spaceshipGroup.add(spaceship, spaceshiplight, lightTarget);
+spaceshipGroup.position.set(100, 0, 0);
+scene.add(spaceshipGroup);
+
 };
 
 // Animation
@@ -231,33 +238,38 @@ const animateOrbits = () => {
   let deltaspeed = Math.PI/180;
 
  // Orbital Speeds 
-mercuryGroup.rotation.y += deltaspeed * (1 / 0.24) * 0.03;
-venusGroup.rotation.y += deltaspeed * (1 / 0.62) * 0.03;
-earthGroup.rotation.y += deltaspeed * (1 / 1.00) * 0.03;
-marsGroup.rotation.y += deltaspeed * (1 / 1.88) * 0.03;
-jupiterGroup.rotation.y += deltaspeed * (1 / 11.86) * 0.03;
-saturnGroup.rotation.y += deltaspeed * (1 / 29.46) * 0.03;
-uranusGroup.rotation.y += deltaspeed * (1 / 84.02) * 0.03;
-neptuneGroup.rotation.y += deltaspeed * (1 / 164.79) * 0.03;
+mercuryGroup.rotation.y += deltaspeed * (1 / 0.24) * 0.05;
+venusGroup.rotation.y += deltaspeed * (1 / 0.62) * 0.05;
+earthGroup.rotation.y += deltaspeed * (1 / 1.00) * 0.05;
+marsGroup.rotation.y += deltaspeed * (1 / 1.88) * 0.05;
+jupiterGroup.rotation.y += deltaspeed * (1 / 11.86) * 0.05;
+saturnGroup.rotation.y += deltaspeed * (1 / 29.46) * 0.05;
+uranusGroup.rotation.y += deltaspeed * (1 / 84.02) * 0.05;
+neptuneGroup.rotation.y += deltaspeed * (1 / 164.79) * 0.05;
 
 // Rotation Speeds
 if (sunGroup.children[0]) sunGroup.children[0].rotation.y += deltaspeed * (24 / 588);
-if (mercuryGroup.children[0]) mercuryGroup.children[0].rotation.y += deltaspeed * (24 / 1407.6) * 0.5;
-if (venusGroup.children[0]) venusGroup.children[0].rotation.y += deltaspeed * -(24 / 5832.5) * 0.5;
-if (earthGroup.children[0]) earthGroup.children[0].rotation.y += deltaspeed * (24 / 24) * 0.5;
-if (earthGroup.children[1]) earthGroup.children[1].rotation.z += deltaspeed * (24 / 24) * 0.5;
-if (marsGroup.children[0]) marsGroup.children[0].rotation.y += deltaspeed * (24 / 24.6) * 0.5;
-if (jupiterGroup.children[0]) jupiterGroup.children[0].rotation.y += deltaspeed * (24 / 9.9) * 0.5;
-if (saturnGroup.children[0]) saturnGroup.children[0].rotation.y += deltaspeed * (24 / 10.7) * 0.5;
-if (uranusGroup.children[0]) uranusGroup.children[0].rotation.y += deltaspeed * -(24 / 17.2) * 0.5;
-if (neptuneGroup.children[0]) neptuneGroup.children[0].rotation.y += deltaspeed * (24 / 16.1) * 0.5;
+if (mercuryGroup.children[0]) mercuryGroup.children[0].rotation.y += deltaspeed * (24 / 1407.6) * 0.2;
+if (venusGroup.children[0]) venusGroup.children[0].rotation.y += deltaspeed * -(24 / 5832.5) * 0.2;
+if (earthGroup.children[0]) earthGroup.children[0].rotation.y += deltaspeed * (24 / 24) * 0.2;
+if (earthGroup.children[1]) earthGroup.children[1].rotation.z += deltaspeed * (24 / 24) * 0.2;
+if (marsGroup.children[0]) marsGroup.children[0].rotation.y += deltaspeed * (24 / 24.6) * 0.2;
+if (jupiterGroup.children[0]) jupiterGroup.children[0].rotation.y += deltaspeed * (24 / 9.9) * 0.2;
+if (saturnGroup.children[0]) saturnGroup.children[0].rotation.y += deltaspeed * (24 / 10.7) * 0.2;
+if (uranusGroup.children[0]) uranusGroup.children[0].rotation.y += deltaspeed * -(24 / 17.2) * 0.2;
+if (neptuneGroup.children[0]) neptuneGroup.children[0].rotation.y += deltaspeed * (24 / 16.1) * 0.2;
 
 
 
 };
 
 
-const createSkybox = (scene, texturePaths, size = 4260) => {
+//
+// CREATE OBJECTS
+//
+
+
+const cSkybox = (scene, texturePaths, size = 4260) => {
   const materials = texturePaths.map(path => 
     new THREE.MeshBasicMaterial({ 
       map: new THREE.TextureLoader().load(path), 
@@ -369,14 +381,19 @@ const loadSpaceship = () => {
   return new Promise((resolve) => {
     const loader = new GLTFLoader();
     loader.load("./assets/model/spaceship/scene.gltf", (gltf) => {
-      let spaceship = gltf.scene;
-      spaceship.scale.set(0.01, 0.01, 0.01);
-      spaceship.rotation.y = (Math.PI / 180) * 0;
-      scene.add(spaceship);
-      resolve(spaceship);
+      let model = gltf.scene;
+      model.scale.set(0.01, 0.01, 0.01);
+      model.rotation.y = (Math.PI / 180) * 0;
+      scene.add(model);
+      resolve(model);
     });
   });
 };
+
+
+//
+// SPACESHIP MOVEMENT FUNCTION
+//
 
 let addHandling = () => {
     document.addEventListener("keydown", keyDownEvent);
@@ -434,41 +451,52 @@ let keyUpEvent = (e) => {
 };
 
 let moveSpaceship = () => {
-// Rotation
+  // Rotation
   if (isRotating !== 0) {
-      spaceship.rotation.y += rotateSpeed * isRotating;
+    spaceshipGroup.rotation.y += rotateSpeed * isRotating;
   }
-//Moving
-  if (isMoving === 1) { 
-      spaceshipVelocity += accel;
-  } else if (isMoving === -1) { 
-      spaceshipVelocity -= accel;
+
+  // Moving
+  if (isMoving === 1) {
+    spaceshipVelocity += accel;
+  } else if (isMoving === -1) {
+    spaceshipVelocity -= accel;
   } else {
-      spaceshipVelocity = 0;
+    spaceshipVelocity = 0;
   }
 
   spaceshipVelocity = Math.max(-spaceshipMaxSpeed, Math.min(spaceshipMaxSpeed, spaceshipVelocity));
-//ascend/decent
+
+  // Ascend/Descend
   if (isHovering !== 0) {
-      spaceship.position.y += hoverSpeed * isHovering;
+    spaceshipGroup.position.y += hoverSpeed * isHovering;
   }
+
+  // Apply forward/backward movement
   if (spaceshipVelocity !== 0) {
-      spaceship.position.x += Math.sin(spaceship.rotation.y) * spaceshipVelocity;
-      spaceship.position.z += Math.cos(spaceship.rotation.y) * spaceshipVelocity;
+    spaceshipGroup.position.x += Math.sin(spaceshipGroup.rotation.y) * spaceshipVelocity;
+    spaceshipGroup.position.z += Math.cos(spaceshipGroup.rotation.y) * spaceshipVelocity;
   }
 };
 
-let cameraFollowShip = () =>{
-  if(spaceship){
-    const offset = new THREE.Vector3(0,0.1,-0.2);
-    const rotatedOffset = offset.clone().applyQuaternion(spaceship.quaternion);
-    const spaceshipPos = spaceship.position.clone();
+let cameraFollowShip = () => {
+  if (spaceshipGroup) {
+    const offset = new THREE.Vector3(0, 0.08, -0.2);
+    const rotatedOffset = offset.clone().applyQuaternion(spaceshipGroup.quaternion);
+    const spaceshipPos = spaceshipGroup.position.clone();
     const camPos = spaceshipPos.add(rotatedOffset);
-    SpaceshipCamera.position.copy(camPos);
-    SpaceshipCamera.lookAt(spaceship.position);
-  }
-}
 
+    SpaceshipCamera.position.copy(camPos);
+    SpaceshipCamera.lookAt(spaceshipGroup.position);
+  }
+};
+
+
+
+
+//
+// RAYCASTING FUNCTION
+//
 let planetNames = {
   "Sun": null,
   "Mercury": null,
@@ -553,9 +581,6 @@ if (planetNames[planetName]) {
     delete planetNames[planetName];
 }
 };
-
-
-
 
 const colorList = [
   "#00FFFF", "#00FF00", "#FFCC00", "#E6E6FA", "#FF69B4",

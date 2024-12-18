@@ -1,5 +1,4 @@
 List of unfinised featuress
-- Spaceship move with spotlight
 - Text apearing ontop of object when raycasting
 - Ring and saterlite got affected by rasycasting when they shouldnt have
 

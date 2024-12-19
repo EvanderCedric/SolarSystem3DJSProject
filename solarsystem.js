@@ -20,7 +20,7 @@ let animationClock = new THREE.Clock();
     cameraFollowShip();
     raycastAnim();
     animateOrbits();
-    //lightFollowShip();
+    animateTextFaceCamera();
 
     renderer.render(scene, currentCamera);
     controls.update();
@@ -171,7 +171,50 @@ const createObjects = async () => {
     )
      scene.add(solarSystem);
 
-    // Adding objects for hover effects
+    //TEXT FOR RAYCASTING
+
+    let sunText = await cText("Sun", 20);
+    let mercuryText = await cText("Mercury", 7); 
+    let venusText = await cText("Venus", 8); 
+    let earthText = await cText("Earth", 9); 
+    let marsText = await cText("Mars", 9); 
+    let jupiterText = await cText("Jupiter", 13); 
+    let saturnText = await cText("Saturn", 12); 
+    let uranusText = await cText("Uranus", 11);
+    let neptuneText = await cText("Neptune", 10);
+
+    sunText.position.copy(sun.position.clone().add(new THREE.Vector3(0, 55, 0)));
+    mercuryText.position.copy(mercury.position.clone().add(new THREE.Vector3(0, 15, 0)));
+    venusText.position.copy(venus.position.clone().add(new THREE.Vector3(0, 17, 0)));
+    earthText.position.copy(earth.position.clone().add(new THREE.Vector3(0, 17, 0)));
+    marsText.position.copy(mars.position.clone().add(new THREE.Vector3(0, 17, 0)));
+    jupiterText.position.copy(jupiter.position.clone().add(new THREE.Vector3(0, 21, 0)));
+    saturnText.position.copy(saturn.position.clone().add(new THREE.Vector3(0, 18, 0)));
+    uranusText.position.copy(uranus.position.clone().add(new THREE.Vector3(0, 17, 0)));
+    neptuneText.position.copy(neptune.position.clone().add(new THREE.Vector3(0, 15, 0)));
+
+    sunGroup.add(sunText);
+    mercuryGroup.add(mercuryText);
+    venusGroup.add(venusText);
+    earthGroup.add(earthText);
+    marsGroup.add(marsText);
+    jupiterGroup.add(jupiterText);
+    saturnGroup.add(saturnText);
+    uranusGroup.add(uranusText);
+    neptuneGroup.add(neptuneText);
+
+    // Assign the textMesh property to the corresponding objects
+    sunGroup.children[2].textMesh = sunText;
+    mercuryGroup.children[1].textMesh = mercuryText;
+    venusGroup.children[1].textMesh = venusText;
+    earthGroup.children[2].textMesh = earthText;
+    marsGroup.children[1].textMesh = marsText;
+    jupiterGroup.children[1].textMesh = jupiterText;
+    saturnGroup.children[2].textMesh = saturnText;
+    uranusGroup.children[2].textMesh = uranusText;
+    neptuneGroup.children[1].textMesh = neptuneText;
+
+     // Adding objects for hover effects
     if(currentCamera != SpaceshipCamera){
       let refObj = [
         solarSystem, 
@@ -184,20 +227,27 @@ const createObjects = async () => {
         saturnGroup,    
         uranusGroup,    
         neptuneGroup    
-    ];
+      ];
       refObj.forEach(group => {
         group.children.forEach(obj => {
             if (obj.material) { 
                 obj.defaultColor = obj.material.color.clone();
             }
-            hoverEffects.set(obj, { rotating: false, fastRotation: false, scale: 1 });
+
+            if(!obj.textMesh){
+              hoverEffects.set(obj, { rotating: false, fastRotation: false, scale: 1 });
+              hoverEffects.set(obj.textMesh,{opacity:0})
+            }
+
+
             
         });
     });
-  
     }
 
-  
+
+
+ 
 
     // Skybox
     const skyboxTextures = [
@@ -208,7 +258,7 @@ const createObjects = async () => {
         'assets/skybox/top.png',
         'assets/skybox/bottom.png'
     ];
-   cSkybox(scene, skyboxTextures);
+   //cSkybox(scene, skyboxTextures);
 
 // Spaceship
 spaceship = await loadSpaceship();
@@ -229,6 +279,8 @@ spaceshiplight.target = lightTarget; // Assign the target to the spotlight
 spaceshipGroup.add(spaceship, spaceshiplight, lightTarget);
 spaceshipGroup.position.set(100, 0, 0);
 scene.add(spaceshipGroup);
+
+
 
 };
 
@@ -261,6 +313,21 @@ if (neptuneGroup.children[0]) neptuneGroup.children[0].rotation.y += deltaspeed 
 
 
 
+};
+
+
+const animateTextFaceCamera = () => {
+
+  if (sunGroup.children[2]) sunGroup.children[2].lookAt(camera.position);
+  if (mercuryGroup.children[1]) mercuryGroup.children[1].lookAt(camera.position);
+  if (venusGroup.children[1]) venusGroup.children[1].lookAt(camera.position);
+  if (earthGroup.children[2]) earthGroup.children[2].lookAt(camera.position);
+  if (marsGroup.children[1]) marsGroup.children[1].lookAt(camera.position);
+  if (jupiterGroup.children[1]) jupiterGroup.children[1].lookAt(camera.position);
+  if (saturnGroup.children[2]) saturnGroup.children[2].lookAt(camera.position);
+  if (uranusGroup.children[2]) uranusGroup.children[2].lookAt(camera.position);
+  if (neptuneGroup.children[1]) neptuneGroup.children[1].lookAt(camera.position);
+  
 };
 
 
@@ -493,124 +560,76 @@ let cameraFollowShip = () => {
 };
 
 
-
-
-//
-// RAYCASTING FUNCTION
-//
-// RAYCASTING FUNCTION
-let planetNames = {
-  "Sun": null,
-  "Mercury": null,
-  "Venus": null,
-  "Earth": null,
-  "Mars": null,
-  "Jupiter": null,
-  "Saturn": null,
-  "Uranus": null,
-  "Neptune": null
+// CREATE TEXT FOR RAYCASTING
+const cText = (text, size = 25, fontUrl = "./three.js-master145/examples/fonts/helvetiker_regular.typeface.json") => {
+  return new Promise((resolve) => {
+    const fontLoader = new FontLoader();
+    fontLoader.load(fontUrl, (font) => {
+      const geometry = new TextGeometry(text, {
+        font: font,
+        size: size,
+        height: 10,
+        depth: 0.1
+      });
+      geometry.center();
+      const material = new THREE.MeshBasicMaterial({ color: "yellow", opacity: 0, transparent: true }); // Initially invisible
+      const textMesh = new THREE.Mesh(geometry, material);
+      resolve(textMesh);
+    });
+  });
 };
 
+
+
+
+//
+// RAYCASTING FUNCTION
+//
 window.onmousemove = (event) => {
-  const mouse = new THREE.Vector2();
-  const raycaster = new THREE.Raycaster();
-  mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-  mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-
-  if (!camera || !camera.isPerspectiveCamera) {
-    console.error("Camera is not properly initialized or is not a perspective camera.");
-    return;
-  }
-
-
-  raycaster.setFromCamera(mouse, camera);
-
   if (camera !== SpaceshipCamera) {
+    const mouse = new THREE.Vector2();
+    const raycaster = new THREE.Raycaster();
+    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+  
+    if (!camera || !camera.isPerspectiveCamera) {
+        console.error("Camera is not properly initialized or is not a perspective camera.");
+        return;
+    }
+  
+    raycaster.setFromCamera(mouse, camera);
+      
     const intersects = raycaster.intersectObjects(scene.children, true);
     if (intersects.length > 0) {
-      const hoveredObject = intersects[0].object;
+        const hoveredObject = intersects[0].object;
 
-      // Ignore objects flagged as isIgnoredByRaycasting
-      if (hoveredObject.isIgnoredByRaycasting) return;
+        // Ignore objects flagged as isIgnoredByRaycasting
+        if (hoveredObject.isIgnoredByRaycasting) return;
 
-      if (hoveredObject !== lastIntersected) {
-        if (lastIntersected) {
-          resetHoverState(lastIntersected);
-          hideTextGeometry(lastIntersected);
+        // Reset hover state for the last intersected object
+        if (hoveredObject !== lastIntersected) {
+            if (lastIntersected) {
+                resetHoverState(lastIntersected);
+            }
+
+            // Apply hover effects to the new object
+            if (hoverEffects.has(hoveredObject)) {
+                applyHoverEffects(hoveredObject);
+                lastIntersected = hoveredObject;
+            } else {
+                lastIntersected = null;
+            }
         }
-
-        if (hoverEffects.has(hoveredObject)) {
-          applyHoverEffects(hoveredObject);
-          lastIntersected = hoveredObject;
-          const planetName = hoveredObject.name;
-
-          if (!planetNames[planetName]) {
-            const worldPosition = new THREE.Vector3();
-            hoveredObject.getWorldPosition(worldPosition);
-            createTextGeometry(planetName, worldPosition);
-          }
-        } else {
-          lastIntersected = null;
-        }
-      }
     } else {
-      if (lastIntersected) {
-        resetHoverState(lastIntersected);
-        hideTextGeometry(lastIntersected);
-        lastIntersected = null;
-      }
+        // Reset hover state when no object is intersected
+        if (lastIntersected) {
+            resetHoverState(lastIntersected);
+            lastIntersected = null;
+        }
     }
   }
 };
 
-const createTextGeometry = (name, position) => {
-  const loader = new FontLoader();
-  loader.load('./three.js-master145/examples/fonts/helvetiker_regular.typeface.json', (font) => {
-    const textGeometry = new TextGeometry(name, {
-      font: font,
-      size: 50, 
-      height: 20, 
-      depth: 20
-    });
-    const material = new THREE.MeshBasicMaterial({ color: 0xFFFFFF });
-    const textMesh = new THREE.Mesh(textGeometry, material);
-
-    // Position text above the object
-    textMesh.position.set(position.x, position.y + 10, position.z);
-
-    scene.add(textMesh);
-    planetNames[name] = textMesh;
-
-    // Move the camera closer and make it look at the text
-    //focusCameraOnText(textMesh.position);
-  });
-};
-
-//DEBUG TEXT RAYCAST
-// Function to focus the camera on the text
-// const focusCameraOnText = (textPosition) => {
-//   const distance = 20; // Adjust distance for how close the camera gets
-//   const direction = new THREE.Vector3().subVectors(camera.position, textPosition).normalize();
-//   const focusPosition = new THREE.Vector3(
-//     textPosition.x - direction.x * distance,
-//     textPosition.y - direction.y * distance,
-//     textPosition.z - direction.z * distance
-//   );
-
-//   camera.position.set(focusPosition.x, focusPosition.y, focusPosition.z);
-//   camera.lookAt(textPosition);
-// };
-
-
-
-// Menyembunyikan teks saat raycasting hilang
-const hideTextGeometry = (object) => {
-  const planetName = object.name;
-  if (planetNames[planetName]) {
-    scene.remove(planetNames[planetName]);
-    delete planetNames[planetName];
-  }
-};
 
 
 const colorList = [
@@ -619,21 +638,29 @@ const colorList = [
   "#EE82EE", "#ADD8E6"
 ];
 const getRandomColor = () => colorList[Math.floor(Math.random() * colorList.length)];
+
+
 const applyHoverEffects = (object) => {
   const effect = hoverEffects.get(object);
+
   if (effect) {
+    // Change object color
     object.material.color.set(getRandomColor());
     effect.rotating = true; 
+    
   }
 };
 
 const resetHoverState = (object) => {
   const effect = hoverEffects.get(object);
+
   if (effect) {
+    // Reset object color
     object.material.color.copy(object.defaultColor);
     effect.rotating = false;
   }
 };
+
 
 let raycastAnim = () => {
   const delta = animationClock.getDelta();
@@ -646,6 +673,3 @@ let raycastAnim = () => {
   });
 };
 
-
-
-  

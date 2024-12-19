@@ -1,5 +1,0 @@
-List of unfinised featuress
-- Text apearing ontop of object when raycasting
-
-Optinal
-- More adjustment of the planet distance, rotation and orbit speed 

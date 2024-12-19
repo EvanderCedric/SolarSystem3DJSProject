@@ -572,7 +572,7 @@ const cText = (text, size = 25, fontUrl = "./three.js-master145/examples/fonts/h
         depth: 0.1
       });
       geometry.center();
-      const material = new THREE.MeshBasicMaterial({ color: "yellow", opacity: 0, transparent: true }); // Initially invisible
+      const material = new THREE.MeshBasicMaterial({ color: "yellow", opacity: 1, transparent: true }); // Initially invisible
       const textMesh = new THREE.Mesh(geometry, material);
       resolve(textMesh);
     });

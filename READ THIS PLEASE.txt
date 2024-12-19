@@ -1,6 +1,5 @@
 List of unfinised featuress
 - Text apearing ontop of object when raycasting
-- Ring and saterlite got affected by rasycasting when they shouldnt have
 
 Optinal
 - More adjustment of the planet distance, rotation and orbit speed 

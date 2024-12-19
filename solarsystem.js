@@ -208,7 +208,7 @@ const createObjects = async () => {
         'assets/skybox/top.png',
         'assets/skybox/bottom.png'
     ];
-    cSkybox(scene, skyboxTextures);
+   cSkybox(scene, skyboxTextures);
 
 // Spaceship
 spaceship = await loadSpaceship();
@@ -345,6 +345,7 @@ const cRing = (inRad, outRad, tSeg, textureURL, opacity = 0.9) => {
   let obj = new THREE.Mesh(geo, mat);
   obj.castShadow = false;
   obj.receiveShadow = false;
+  obj.isIgnoredByRaycasting = true;
 
   return obj;
 };
@@ -360,7 +361,7 @@ const cSatelite = (radtop, radbot,h,radseg) =>{
   let obj = new THREE.Mesh(geo,mat);
   obj.castShadow = false
   obj.receiveShadow = true;
-
+  obj.isIgnoredByRaycasting = true;
   return obj;
   
 }
@@ -497,6 +498,7 @@ let cameraFollowShip = () => {
 //
 // RAYCASTING FUNCTION
 //
+// RAYCASTING FUNCTION
 let planetNames = {
   "Sun": null,
   "Mercury": null,
@@ -509,78 +511,107 @@ let planetNames = {
   "Neptune": null
 };
 
-const createTextGeometry = (name, position) => {
-const loader = new FontLoader();
-loader.load('./three.js-master145/examples/fonts/helvetiker_regular.typeface.json', (font) => {
-    const textGeometry = new TextGeometry(name, {
-        font: font,
-        size: 200,
-        depth: 50
-    });
-    const material = new THREE.MeshBasicMaterial({ color: 0xFFFFFF });
-    const textMesh = new THREE.Mesh(textGeometry, material);
-
-    console.log("Text position:", position);
-
-    textMesh.position.set(position.x, position.y + 50, position.z);
-    textMesh.scale.set(500, 500, 500);
-
-    scene.add(textMesh);
-
-    console.log("Text mesh added:", textMesh);
-
-    planetNames[name] = textMesh;
-});
-};
-
 window.onmousemove = (event) => {
   const mouse = new THREE.Vector2();
   const raycaster = new THREE.Raycaster();
   mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
   mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
+  if (!camera || !camera.isPerspectiveCamera) {
+    console.error("Camera is not properly initialized or is not a perspective camera.");
+    return;
+  }
+
+
   raycaster.setFromCamera(mouse, camera);
 
-  // Check if current camera is not the SpaceshipCamera
   if (camera !== SpaceshipCamera) {
-      const intersects = raycaster.intersectObjects(scene.children, true);
+    const intersects = raycaster.intersectObjects(scene.children, true);
+    if (intersects.length > 0) {
+      const hoveredObject = intersects[0].object;
 
-      if (intersects.length > 0) {
-          const hoveredObject = intersects[0].object;
+      // Ignore objects flagged as isIgnoredByRaycasting
+      if (hoveredObject.isIgnoredByRaycasting) return;
 
-          if (hoveredObject !== lastIntersected) {
-              if (lastIntersected) {
-                  resetHoverState(lastIntersected);
-                  hideTextGeometry(lastIntersected);
-              }
-              if (hoverEffects.has(hoveredObject)) {
-                  applyHoverEffects(hoveredObject);
-                  lastIntersected = hoveredObject;
-                  const planetName = hoveredObject.name;
-                  if (!planetNames[planetName]) {
-                      createTextGeometry(planetName, hoveredObject.position);
-                  }
-              } else {
-                  lastIntersected = null;
-              }
+      if (hoveredObject !== lastIntersected) {
+        if (lastIntersected) {
+          resetHoverState(lastIntersected);
+          hideTextGeometry(lastIntersected);
+        }
+
+        if (hoverEffects.has(hoveredObject)) {
+          applyHoverEffects(hoveredObject);
+          lastIntersected = hoveredObject;
+          const planetName = hoveredObject.name;
+
+          if (!planetNames[planetName]) {
+            const worldPosition = new THREE.Vector3();
+            hoveredObject.getWorldPosition(worldPosition);
+            createTextGeometry(planetName, worldPosition);
           }
-      } else {
-          if (lastIntersected) {
-              resetHoverState(lastIntersected);
-              hideTextGeometry(lastIntersected);
-              lastIntersected = null;
-          }
+        } else {
+          lastIntersected = null;
+        }
       }
+    } else {
+      if (lastIntersected) {
+        resetHoverState(lastIntersected);
+        hideTextGeometry(lastIntersected);
+        lastIntersected = null;
+      }
+    }
   }
 };
 
+const createTextGeometry = (name, position) => {
+  const loader = new FontLoader();
+  loader.load('./three.js-master145/examples/fonts/helvetiker_regular.typeface.json', (font) => {
+    const textGeometry = new TextGeometry(name, {
+      font: font,
+      size: 50, 
+      height: 20, 
+      depth: 20
+    });
+    const material = new THREE.MeshBasicMaterial({ color: 0xFFFFFF });
+    const textMesh = new THREE.Mesh(textGeometry, material);
+
+    // Position text above the object
+    textMesh.position.set(position.x, position.y + 10, position.z);
+
+    scene.add(textMesh);
+    planetNames[name] = textMesh;
+
+    // Move the camera closer and make it look at the text
+    //focusCameraOnText(textMesh.position);
+  });
+};
+
+//DEBUG TEXT RAYCAST
+// Function to focus the camera on the text
+// const focusCameraOnText = (textPosition) => {
+//   const distance = 20; // Adjust distance for how close the camera gets
+//   const direction = new THREE.Vector3().subVectors(camera.position, textPosition).normalize();
+//   const focusPosition = new THREE.Vector3(
+//     textPosition.x - direction.x * distance,
+//     textPosition.y - direction.y * distance,
+//     textPosition.z - direction.z * distance
+//   );
+
+//   camera.position.set(focusPosition.x, focusPosition.y, focusPosition.z);
+//   camera.lookAt(textPosition);
+// };
+
+
+
+// Menyembunyikan teks saat raycasting hilang
 const hideTextGeometry = (object) => {
-const planetName = object.name;
-if (planetNames[planetName]) {
+  const planetName = object.name;
+  if (planetNames[planetName]) {
     scene.remove(planetNames[planetName]);
     delete planetNames[planetName];
-}
+  }
 };
+
 
 const colorList = [
   "#00FFFF", "#00FF00", "#FFCC00", "#E6E6FA", "#FF69B4",

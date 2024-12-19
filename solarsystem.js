@@ -258,7 +258,7 @@ const createObjects = async () => {
         'assets/skybox/top.png',
         'assets/skybox/bottom.png'
     ];
-   //cSkybox(scene, skyboxTextures);
+   cSkybox(scene, skyboxTextures);
 
 // Spaceship
 spaceship = await loadSpaceship();

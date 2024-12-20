@@ -93,6 +93,16 @@ let init = () => {
   let neptuneGroup = new THREE.Object3D();
   let spaceshipGroup = new THREE.Object3D();
 
+  let sunText;
+  let mercuryText;
+  let venusText ;
+  let earthText ;
+  let marsText;
+  let jupiterText;
+  let saturnText ;
+  let uranusText;
+  let neptuneText;
+
 const createObjects = async () => {
     // Sun
     let sun = cSun(40, 32, 32, "./assets/textures/sun.jpg");
@@ -173,15 +183,15 @@ const createObjects = async () => {
 
     //TEXT FOR RAYCASTING
 
-    let sunText = await cText("Sun", 20);
-    let mercuryText = await cText("Mercury", 7); 
-    let venusText = await cText("Venus", 8); 
-    let earthText = await cText("Earth", 9); 
-    let marsText = await cText("Mars", 9); 
-    let jupiterText = await cText("Jupiter", 13); 
-    let saturnText = await cText("Saturn", 12); 
-    let uranusText = await cText("Uranus", 11);
-    let neptuneText = await cText("Neptune", 10);
+    sunText = await cText("Sun", 20);
+    mercuryText = await cText("Mercury", 7); 
+    venusText = await cText("Venus", 8); 
+    earthText = await cText("Earth", 9); 
+    marsText = await cText("Mars", 9); 
+    jupiterText = await cText("Jupiter", 13); 
+    saturnText = await cText("Saturn", 12); 
+    uranusText = await cText("Uranus", 11);
+    neptuneText = await cText("Neptune", 10);
 
     sunText.position.copy(sun.position.clone().add(new THREE.Vector3(0, 55, 0)));
     mercuryText.position.copy(mercury.position.clone().add(new THREE.Vector3(0, 15, 0)));
@@ -230,21 +240,17 @@ const createObjects = async () => {
       ];
       refObj.forEach(group => {
         group.children.forEach(obj => {
-            if (obj.material) { 
-                obj.defaultColor = obj.material.color.clone();
-            }
+          if (obj.material) { 
+            obj.defaultColor = obj.material.color.clone();
+          }
 
-            if(!obj.textMesh){
-              hoverEffects.set(obj, { rotating: false, fastRotation: false, scale: 1 });
-              hoverEffects.set(obj.textMesh,{opacity:0})
-            }
-
-
-            
+          if(!obj.textMesh){
+            hoverEffects.set(obj, { rotating: false, fastRotation: false, scale: 1 });
+            hoverEffects.set(obj.textMesh,{opacity:0})
+          }
         });
-    });
+      });
     }
-
 
 
  
@@ -317,7 +323,6 @@ if (neptuneGroup.children[0]) neptuneGroup.children[0].rotation.y += deltaspeed 
 
 
 const animateTextFaceCamera = () => {
-
   if (sunGroup.children[2]) sunGroup.children[2].lookAt(camera.position);
   if (mercuryGroup.children[1]) mercuryGroup.children[1].lookAt(camera.position);
   if (venusGroup.children[1]) venusGroup.children[1].lookAt(camera.position);
@@ -387,7 +392,7 @@ const cSun = (r, wSeg, hSeg, textureURL) => {
   return obj;
 }
 
-const cRing = (inRad, outRad, tSeg, textureURL, opacity = 0.9) => {
+const cRing = (inRad, outRad, tSeg, textureURL, opacity = 0.99) => {
   let geo = new THREE.RingGeometry(inRad, outRad, tSeg);
   let mat;
 
@@ -560,7 +565,6 @@ let cameraFollowShip = () => {
 };
 
 
-// CREATE TEXT FOR RAYCASTING
 const cText = (text, size = 25, fontUrl = "./three.js-master145/examples/fonts/helvetiker_regular.typeface.json") => {
   return new Promise((resolve) => {
     const fontLoader = new FontLoader();
@@ -572,13 +576,16 @@ const cText = (text, size = 25, fontUrl = "./three.js-master145/examples/fonts/h
         depth: 0.1
       });
       geometry.center();
-      const material = new THREE.MeshBasicMaterial({ color: "yellow", opacity: 1, transparent: true }); // Initially invisible
+      const material = new THREE.MeshBasicMaterial({ 
+        color: "yellow", 
+        opacity: 0,
+        transparent: true 
+      });
       const textMesh = new THREE.Mesh(geometry, material);
       resolve(textMesh);
     });
   });
 };
-
 
 
 
@@ -591,41 +598,43 @@ window.onmousemove = (event) => {
     const raycaster = new THREE.Raycaster();
     mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
     mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-  
+
     if (!camera || !camera.isPerspectiveCamera) {
         console.error("Camera is not properly initialized or is not a perspective camera.");
         return;
     }
-  
+
     raycaster.setFromCamera(mouse, camera);
-      
+
     const intersects = raycaster.intersectObjects(scene.children, true);
+
     if (intersects.length > 0) {
-        const hoveredObject = intersects[0].object;
+      const hoveredObject = intersects[0].object;
 
-        // Ignore objects flagged as isIgnoredByRaycasting
-        if (hoveredObject.isIgnoredByRaycasting) return;
+      // Skip objects that are ignored by raycasting
+      if (hoveredObject.isIgnoredByRaycasting) {
+        return;
+      }
 
-        // Reset hover state for the last intersected object
-        if (hoveredObject !== lastIntersected) {
-            if (lastIntersected) {
-                resetHoverState(lastIntersected);
-            }
-
-            // Apply hover effects to the new object
-            if (hoverEffects.has(hoveredObject)) {
-                applyHoverEffects(hoveredObject);
-                lastIntersected = hoveredObject;
-            } else {
-                lastIntersected = null;
-            }
-        }
-    } else {
-        // Reset hover state when no object is intersected
+      // Reset hover state for the last intersected object
+      if (hoveredObject !== lastIntersected) {
         if (lastIntersected) {
-            resetHoverState(lastIntersected);
-            lastIntersected = null;
+          resetHoverState(lastIntersected);
         }
+
+        // Apply hover effect
+        if (hoverEffects.has(hoveredObject)) {
+          applyHoverEffects(hoveredObject);
+          lastIntersected = hoveredObject;
+        } else {
+          lastIntersected = null;
+        }
+      }
+    } else {
+      if (lastIntersected) {
+        resetHoverState(lastIntersected);
+        lastIntersected = null;
+      }
     }
   }
 };
@@ -639,15 +648,23 @@ const colorList = [
 ];
 const getRandomColor = () => colorList[Math.floor(Math.random() * colorList.length)];
 
-
 const applyHoverEffects = (object) => {
   const effect = hoverEffects.get(object);
 
   if (effect) {
-    // Change object color
-    object.material.color.set(getRandomColor());
-    effect.rotating = true; 
-    
+    if (object.isTextMesh) {
+      return; // Skip if the object is the textMesh itself
+    } else {
+      // Change the color of the planet
+      object.material.color.set(getRandomColor());
+
+      // Show the associated textMesh for the planet when hovered
+      if (object.userData.textMesh) {
+        object.userData.textMesh.material.opacity = 1; // Make text visible
+        object.userData.textMesh.material.color.set(0xffff00); // Change text color to yellow
+      }
+    }
+    effect.rotating = true;
   }
 };
 
@@ -655,8 +672,15 @@ const resetHoverState = (object) => {
   const effect = hoverEffects.get(object);
 
   if (effect) {
-    // Reset object color
+    // Reset the color of the planet
     object.material.color.copy(object.defaultColor);
+
+    // Hide the associated textMesh for the planet
+    if (object.userData.textMesh) {
+      object.userData.textMesh.material.opacity = 0; // Make text invisible
+    }
+
+    // Turn off rotation effect
     effect.rotating = false;
   }
 };

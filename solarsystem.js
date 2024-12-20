@@ -109,7 +109,7 @@ const createObjects = async () => {
     sun.position.set(0, 0, 0);
 
     // Sunlight
-    let sunlight = createPointLight({ color: "#FFFFFF" }, 200000, 1280);
+    let sunlight = createPointLight({ color: "#FFFFFF" }, 100000, 1280);
     sunlight.position.copy(sun.position.clone());
     sunlight.castShadow = true;
     scene.add(sunlight);
@@ -481,7 +481,7 @@ let
   isMoving = 0,
   isHovering = 0,
   accel = 0.01, 
-  hoverSpeed = 0.05; 
+  hoverSpeed = 0.1; 
 
 let keyDownEvent = (e) => {
     let keyCode = e.keyCode;

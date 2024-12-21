@@ -95,8 +95,8 @@ let init = () => {
 
   let sunText;
   let mercuryText;
-  let venusText ;
-  let earthText ;
+  let venusText;
+  let earthText;
   let marsText;
   let jupiterText;
   let saturnText ;
@@ -212,6 +212,17 @@ const createObjects = async () => {
     saturnGroup.add(saturnText);
     uranusGroup.add(uranusText);
     neptuneGroup.add(neptuneText);
+
+    //give object names
+    sun.name = "Sun";
+    mercury.name = "Mercury";
+    venus.name = "Venus";
+    earth.name = "Earth";
+    mars.name = "Mars";
+    jupiter.name = "Jupiter";
+    saturn.name = "Saturn";
+    uranus.name = "Uranus";
+    neptune.name = "Neptune";
 
     // Assign the textMesh property to the corresponding objects
     sunGroup.children[2].textMesh = sunText;
@@ -652,17 +663,53 @@ const applyHoverEffects = (object) => {
   const effect = hoverEffects.get(object);
 
   if (effect) {
-    if (object.isTextMesh) {
+    if (object.textMesh) {
       return; // Skip if the object is the textMesh itself
     } else {
       // Change the color of the planet
       object.material.color.set(getRandomColor());
+    
+      switch(object.name) {
+        case "Sun":
+         sunText.textMesh.material.opacity = 1
+          break;
 
-      // Show the associated textMesh for the planet when hovered
-      if (object.userData.textMesh) {
-        object.userData.textMesh.material.opacity = 1; // Make text visible
-        object.userData.textMesh.material.color.set(0xffff00); // Change text color to yellow
+        case "Mercury":
+        mercuryText.textMesh.material.opacity = 1;
+        break;
+
+        case "Venus":
+        venusText.textMesh.material.opacity = 1;
+        break;
+
+        case "Earth":
+        earthText.textMesh.material.opacity = 1;
+        break;
+
+        case "Mars":
+        marsText.textMesh.material.opacity = 1;
+        break;
+      
+        case "Jupiter":
+        jupiterText.textMesh.material.opacity = 1;
+        break;
+
+        case "Saturn":
+        saturnText.textMesh.material.opacity = 1;
+        break;
+
+        case "Uranus":
+        uranusText.textMesh.material.opacity = 1;
+        break;
+
+        case "Neptune":
+        neptuneText.textMesh.material.opacity = 1;
+        break;
+      
+
+        default: break;
       }
+      
     }
     effect.rotating = true;
   }
@@ -675,11 +722,15 @@ const resetHoverState = (object) => {
     // Reset the color of the planet
     object.material.color.copy(object.defaultColor);
 
-    // Hide the associated textMesh for the planet
-    if (object.userData.textMesh) {
-      object.userData.textMesh.material.opacity = 0; // Make text invisible
-    }
-
+    sunText.textMesh.material.opacity = 0;
+    mercuryText.textMesh.material.opacity = 0;
+    venusText.textMesh.material.opacity = 0;
+    earthText.textMesh.material.opacity = 0;
+    marsText.textMesh.material.opacity = 0;
+    jupiterText.textMesh.material.opacity = 0;
+    saturnText.textMesh.material.opacity = 0;
+    uranusText.textMesh.material.opacity = 0;
+    neptuneText.textMesh.material.opacity = 0;
     // Turn off rotation effect
     effect.rotating = false;
   }
